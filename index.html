@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="layui/css/layui.css">
+    <link rel="stylesheet" href="bs4/css/bootstrap.css">
+
+    <style>
+        body {
+            background-image: url(img/wallhaven-772228.png);
+            background-size: 100%;
+        }
+
+        .Tip {
+            margin-top: 250px;
+        }
+        .donwloadCode{
+            position: fixed;
+            /* right: 30px; */
+            bottom: 100px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container text-center">
+        <div class="alert alert-secondary  col-md-7 mx-auto Tip" role="alert">
+            可输入3位紧急号码、5位服务号码、11位手机号码、11位(区号-电话号码)座机号码
+        </div>
+        <div class="input-group mb-3 mx-auto  col-md-5">
+
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="inputGroup-sizing-default">输入号码</span>
+            </div>
+
+            <input type="text" class="form-control" aria-label="Sizing example input"
+                aria-describedby="inputGroup-sizing-default" id="data" autofocus>
+            <div class="input-group-append">
+                <button class="btn " type="button" id="check"">查询</button>
+            </div>
+        </div>
+
+    </div>
+    <footer class=" container border-top fixed-bottom text-center">
+        <p class="text-center text-light py-1">©Ricardo 2019 Uareshy.cn &nbsp;&nbsp; 联系邮箱：1131308355@qq.com</p>
+        <a href="./Telcheck.rar" class="btn btn-light donwloadCode">下载源码</a>
+    </footer>
+
+</body>
+
+<script src=" layui/layui.js"> </script> 
+<script src="js/jquery-3.3.1.min.js"></script>
+<script src="js/popper.min.js"></script>
+<script src="bs4/js/bootstrap.js"></script>
+                    <!-- 数据文件 -->
+<script src="Datas.js"></script>
+
+                    <script>
+                        var layer;//弹出层
+                        layui.use('layer', function () {
+                            layer = layui.layer;
+
+                        });
+                        // //信息提示
+                        function LayTip(Tip) {
+                            layer.alert(Tip, {
+                                title: ['这是你想要的结果吗？', 'text-align: center;'],
+                                skin: 'layui-layer-molv' //样式类名
+                                , closeBtn: 0,
+                                icon: 6,
+                                anim: 1,
+                            }
+                            );
+                        }
+                        // 错误提示
+                        function ErrorTip(Tip) {
+                            layer.alert(Tip, {
+                                title: ['这是你想要的结果吗？', 'text-align: center;'],
+                                skin: 'layui-layer-lan', //样式类名
+                                closeBtn: 0,
+                                icon: 5,
+                                anim: 6,
+                            }
+                            );
+                        }
+                        //添加点击检测事件
+                        $("#check").click(function () {
+                            var Testdata = $("#data").val();
+
+                            if (Testdata.length == 3 && (/\d{3}/).test(Testdata)) {//三位号码
+                                var res = Datas['digit_3'][Testdata];
+                                if (res) {
+                                    LayTip(res);
+                                } else {
+                                    ErrorTip("不存的3位紧急号码.");
+                                }
+
+                            }
+                            else if (Testdata.length == 5 && (/\d{5}/).test(Testdata)) {//五位号码
+                                var res = Datas['digit_5'][Testdata];
+                                if (res) {
+                                    LayTip(res);
+                                } else {
+                                    ErrorTip("不存的5位服务号码.");
+                                }
+
+                            }
+                            else if (Testdata.length == 11 && (/\d{11}/).test(Testdata)) {//11位手机号码
+
+                                $.ajax({
+                                    type: "get",
+                                    // url: 'http://tcc.taobao.com/cc/json/mobile_tel_segment.htm?tel=' + Testdata,//淘宝api
+                                    url: 'http://api.online-service.vip/phone?number=' + Testdata,
+                                    // dataType: "jsonp",
+                                    // jsonp: "callback",
+                                    // 回调正确
+                                    success: function (result) {
+                                        if (result.status == 201) {
+                                            ErrorTip("不存在的手机号码！");
+
+                                        } else {
+                                            if (Testdata == 13978033915) {
+                                                LayTip("安大美女的电话！！");
+                                            } else {
+                                                LayTip("运营商:" + result.mobiletype + "&nbsp;&nbsp;&nbsp;归属地:" + result.province + result.city);
+
+                                            }
+                                        }
+
+                                    },//错误
+                                    error: function () {
+                                        ErrorTip("是不是输入错误或者没联网呢？");
+
+                                    }
+                                });
+
+                            }
+                            //座机号码 xxx-xxxxxxx或xxxx-xxxxxxx
+                            else if (Testdata.length == 12 && (/^\d{3,4}-[2345678]\d{6,7}$/.test(Testdata))) {
+                                var placeNum = Testdata.substr(0, 4);
+                                var placeNum2 = Testdata.substr(0, 3);
+                                if (Datas['digit_12'][placeNum]) {//区号4位
+
+                                    LayTip(Datas['digit_12'][placeNum]+' 固定电话');
+
+                                } else if (Datas['digit_12'][placeNum2]) {//区号3位
+
+                                    LayTip(Datas['digit_12'][placeNum2] +' 固定电话');
+                                } else {
+                                    ErrorTip("不存的座机号码.");
+                                }
+                            }
+                            //以上不符合
+                            else {
+                                ErrorTip("输入错误，不存在的号码。");
+                            }
+
+                        })
+                    </script>
+
+</html>
